@@ -20,4 +20,4 @@ class Employee(db.Model):
     position = db.Column(db.String(120))
     department = db.Column(db.String(120))
     salary = db.Column(db.Float)
-    date_joined = db.Column(db.String(20))  # store ISO string for simplicity
+    date_joined = db.Column(db.String(20))
