@@ -22,8 +22,6 @@ def create_app():
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(emp_bp, url_prefix="/api/employees")
-
-    # 🔥 Create tables automatically (Flask 2.3 compatible)
     with app.app_context():
         db.create_all()
         print("🔥 DATABASE TABLES CREATED (IF NOT EXISTS)")
