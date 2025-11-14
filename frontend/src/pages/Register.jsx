@@ -13,7 +13,7 @@ export default function Register() {
 
   const handleRegister = async () => {
     try {
-      await API.post("/auth/register", { username, password });
+      const res = await API.post("/auth/register", { username, password });
       setCreated(true);
     } catch (err) {
       alert("User already exists or invalid input");
@@ -50,8 +50,7 @@ export default function Register() {
             <button onClick={handleRegister}>Register</button>
 
             <p className="switch">
-              Already have account? 
-              <span onClick={()=>navigate("/login")}>Login</span>
+              Already have account? <span onClick={()=>navigate("/login")}>Login</span>
             </p>
           </>
         ) : (
