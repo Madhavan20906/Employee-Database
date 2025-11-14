@@ -25,7 +25,7 @@ def create_app():
         return jsonify({"status": "ok"})
 
     return app
-
+app = create_app()
 if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
