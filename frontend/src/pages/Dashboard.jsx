@@ -17,7 +17,7 @@ export default function Dashboard() {
   /* ------------------------------ */
   const fetchData = async () => {
     try {
-      const res = await API.get(`/employees?search=${encodeURIComponent(search)}`);
+      const res = await API.get(`/api/employees?search=${encodeURIComponent(search)}`);
       setEmps(res.data);
 
     } catch (err) {

@@ -14,7 +14,7 @@ export default function Register() {
 
   const handleRegister = async () => {
     try {
-      await API.post("/auth/register", { username, password });
+      await API.post("/api/auth/register", { username, password });
       setCreated(true);
     } catch (err) {
       alert("User already exists or invalid input");
