@@ -9,7 +9,7 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
 
   const deleteRow = async (id) => {
     if (!window.confirm("Delete?")) return;
-    await API.delete(`/api/employees/${id}`);   // <-- FIXED
+    await API.delete(`/employees/${id}`);
     onRefresh();
   };
 
@@ -23,7 +23,7 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
   };
 
   const exportExcelServer = async () => {
-    const res = await API.get("/api/employees/export/excel", {   // <-- FIXED
+    const res = await API.get("/employees/export/excel", {
       responseType: "blob"
     });
     saveAs(res.data, "employees.xlsx");

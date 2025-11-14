@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import "../auth.css";
 
-
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +12,7 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      const res = await API.post("/api/auth/login", { username, password });
+      const res = await API.post("/auth/login", { username, password });
       localStorage.setItem("token", res.data.access_token);
       navigate("/");
     } catch (err) {

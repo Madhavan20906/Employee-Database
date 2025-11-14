@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import "../auth.css";
 
-
 export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -14,7 +13,7 @@ export default function Register() {
 
   const handleRegister = async () => {
     try {
-      await API.post("/api/auth/register", { username, password });
+      await API.post("/auth/register", { username, password });
       setCreated(true);
     } catch (err) {
       alert("User already exists or invalid input");
@@ -29,7 +28,6 @@ export default function Register() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
       >
-
         {!created ? (
           <>
             <h2>Create Account ✨</h2>
@@ -65,7 +63,6 @@ export default function Register() {
             </button>
           </>
         )}
-
       </motion.div>
     </div>
   );
