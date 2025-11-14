@@ -34,23 +34,24 @@ export default function Register() {
             <p className="subtitle">Join us in seconds</p>
 
             <input 
-              type="text" 
-              placeholder="Username" 
-              value={username} 
-              onChange={(e)=>setUsername(e.target.value)} 
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e)=>setUsername(e.target.value)}
             />
 
             <input 
-              type="password" 
-              placeholder="Password" 
-              value={password} 
-              onChange={(e)=>setPassword(e.target.value)} 
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
             />
 
             <button onClick={handleRegister}>Register</button>
 
             <p className="switch">
-              Already have account? <span onClick={()=>navigate("/login")}>Login</span>
+              Already have account? 
+              <span onClick={()=>navigate("/login")}>Login</span>
             </p>
           </>
         ) : (
