@@ -9,3 +9,4 @@ openpyxl==3.1.2
 Flask-Cors==4.0.0
 Werkzeug==3.0.2
 gunicorn
+psycopg2-binary
