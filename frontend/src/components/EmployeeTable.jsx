@@ -6,9 +6,19 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import ExportFilterModal from "./ExportFilterModal";
 
-export default function EmployeeTable({ rows, onRefresh, onEdit }) {
+const COLUMN_ORDER = [
+  "id",
+  "name",
+  "email",
+  "position",
+  "department",
+  "salary",
+  "date_joined"
+];
 
+export default function EmployeeTable({ rows, onRefresh, onEdit }) {
   const [showFilter, setShowFilter] = useState(false);
+
   const [columns, setColumns] = useState({
     id: true,
     name: true,
@@ -25,7 +35,8 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
     onRefresh();
   };
 
-  const filteredRows = rows.map(row => {
+  // Apply filters for screen + exports
+  const filteredRows = rows.map((row) => {
     const filtered = {};
     for (let key in row) {
       if (columns[key]) filtered[key] = row[key];
@@ -33,15 +44,27 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
     return filtered;
   });
 
+  // ✅ FIXED EXCEL EXPORT — ordered + filtered
   const exportExcelClient = () => {
-    const ws = XLSX.utils.json_to_sheet(filteredRows);
+    const filtered = filteredRows.map((row) => {
+      const ordered = {};
+      COLUMN_ORDER.forEach((key) => {
+        if (columns[key]) ordered[key] = row[key];
+      });
+      return ordered;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(filtered);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Employees");
+
     const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     const blob = new Blob([buf], { type: "application/octet-stream" });
-    saveAs(blob, "employees_filtered.xlsx");
+
+    saveAs(blob, "employees.xlsx");
   };
 
+  // PDF export (table screenshot)
   const exportPDFClient = async () => {
     const doc = new jsPDF();
     const el = document.getElementById("emp-table");
@@ -78,22 +101,34 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
         <table id="emp-table" className="table table-bordered table-sm">
           <thead className="table-light">
             <tr>
-              {Object.keys(columns).map(
-                key => columns[key] && <th key={key}>{key.toUpperCase()}</th>
+              {COLUMN_ORDER.map(
+                (key) => columns[key] && <th key={key}>{key.toUpperCase()}</th>
               )}
               <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {filteredRows.map((r) => (
+            {rows.map((r) => (
               <tr key={r.id}>
-                {Object.keys(r).map((k) => (
-                  <td key={k}>{r[k]}</td>
-                ))}
+                {COLUMN_ORDER.map(
+                  (key) => columns[key] && <td key={key}>{r[key]}</td>
+                )}
+
                 <td>
-                  <button className="btn btn-sm btn-primary me-1" onClick={() => onEdit(r)}>Edit</button>
-                  <button className="btn btn-sm btn-danger" onClick={() => deleteRow(r.id)}>Delete</button>
+                  <button
+                    className="btn btn-sm btn-primary me-1"
+                    onClick={() => onEdit(r)}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => deleteRow(r.id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
@@ -107,9 +142,7 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
           columns={columns}
           setColumns={setColumns}
           onClose={() => setShowFilter(false)}
-          onExport={() => {
-            setShowFilter(false);
-          }}
+          onExport={() => setShowFilter(false)}
         />
       )}
     </div>
