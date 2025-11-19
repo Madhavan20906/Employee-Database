@@ -1,4 +1,5 @@
-from flask import Flask, jsonify
+import os
+from flask import Flask, jsonify, send_from_directory
 from config import Config
 from models import db
 from flask_migrate import Migrate
@@ -11,10 +12,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder="frontend/dist", static_url_path="/")
     app.config.from_object(Config)
 
-    # 🔥 FIX FOR RENDER DB DISCONNECTION (added these 3 lines)
+    # 🔥 FIX FOR RENDER DB DISCONNECTION
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         "pool_pre_ping": True,
         "pool_recycle": 280
@@ -29,6 +30,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(emp_bp, url_prefix="/api/employees")
 
+    # CREATE TABLES IF NOT EXISTS
     with app.app_context():
         db.create_all()
         print("🔥 DATABASE TABLES CREATED (IF NOT EXISTS)")
@@ -36,6 +38,16 @@ def create_app():
     @app.route("/api/health")
     def health():
         return jsonify({"status": "ok"})
+
+    # -----------------------------
+    # 🚀 FIX FOR REACT ROUTES
+    # -----------------------------
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def serve_react(path):
+        if path != "" and os.path.exists(os.path.join("frontend/dist", path)):
+            return send_from_directory("frontend/dist", path)
+        return send_from_directory("frontend/dist", "index.html")
 
     return app
 
