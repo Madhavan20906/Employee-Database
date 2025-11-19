@@ -4,16 +4,17 @@ import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import html2canvas from "html2canvas";
 
 export default function EmployeeTable({ rows, onRefresh, onEdit }) {
 
-  // 🔥 NEW: Column filter state
   const [selectedColumns, setSelectedColumns] = React.useState([]);
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
-  // 🔥 NEW: Toggle selected columns
+  const columns = ["id", "name", "email", "position", "department", "salary"];
+
   const handleColumnToggle = (e) => {
     const col = e.target.value;
+
     setSelectedColumns(prev =>
       prev.includes(col)
         ? prev.filter(c => c !== col)
@@ -27,10 +28,10 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
     onRefresh();
   };
 
-  // 🔥 UPDATED: Excel export (client) with filters
+  // ⭐ Excel Export with Filters
   const exportExcelClient = () => {
     if (selectedColumns.length === 0) {
-      alert("Select at least one column to export.");
+      alert("Please select at least one column.");
       return;
     }
 
@@ -43,10 +44,8 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
     const ws = XLSX.utils.json_to_sheet(filtered);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Employees");
-
     const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([buf], { type: "application/octet-stream" });
-    saveAs(blob, "employees_filtered.xlsx");
+    saveAs(new Blob([buf]), "employees_filtered.xlsx");
   };
 
   const exportExcelServer = async () => {
@@ -56,10 +55,10 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
     saveAs(res.data, "employees.xlsx");
   };
 
-  // 🔥 UPDATED: PDF export (client) with filters
+  // ⭐ PDF Export with Filters (autoTable)
   const exportPDFClient = () => {
     if (selectedColumns.length === 0) {
-      alert("Select at least one column to export.");
+      alert("Please select at least one column.");
       return;
     }
 
@@ -71,13 +70,13 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
       return obj;
     });
 
-    const columns = selectedColumns.map(c => ({
+    const tableColumns = selectedColumns.map(c => ({
       header: c.toUpperCase(),
       dataKey: c
     }));
 
     doc.autoTable({
-      columns,
+      columns: tableColumns,
       body: tableData
     });
 
@@ -87,19 +86,43 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
   return (
     <div>
 
-      {/* 🔥 NEW: Column Filters */}
-      <div className="mb-2">
-        <strong>Select columns:</strong>
-        <div className="mt-1">
-          {["id", "name", "email", "position", "department", "salary"].map(col => (
-            <label key={col} className="me-3">
-              <input type="checkbox" value={col} onChange={handleColumnToggle} />
-              {" "}{col.toUpperCase()}
-            </label>
-          ))}
-        </div>
+      {/* ⭐ Dropdown Column Filter */}
+      <div className="mb-2" style={{ position: "relative" }}>
+        <button
+          className="btn btn-outline-dark"
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+        >
+          Select Columns ▼
+        </button>
+
+        {dropdownOpen && (
+          <div
+            style={{
+              position: "absolute",
+              top: "40px",
+              left: 0,
+              background: "white",
+              border: "1px solid #ccc",
+              padding: "10px",
+              borderRadius: "5px",
+              zIndex: 50
+            }}
+          >
+            {columns.map(col => (
+              <div key={col}>
+                <input
+                  type="checkbox"
+                  value={col}
+                  onChange={handleColumnToggle}
+                />
+                {" "}{col.toUpperCase()}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
+      {/* Export Buttons */}
       <div className="mb-2">
         <button className="btn btn-outline-primary me-2" onClick={exportExcelClient}>
           Export Excel (client)
@@ -112,6 +135,7 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
         </button>
       </div>
 
+      {/* Table */}
       <div style={{ overflowX: "auto" }}>
         <table id="emp-table" className="table table-bordered table-sm">
           <thead className="table-light">
