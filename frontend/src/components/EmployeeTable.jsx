@@ -3,9 +3,23 @@ import API from "../api";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
+import "jspdf-autotable";
 import html2canvas from "html2canvas";
 
 export default function EmployeeTable({ rows, onRefresh, onEdit }) {
+
+  // 🔥 NEW: Column filter state
+  const [selectedColumns, setSelectedColumns] = React.useState([]);
+
+  // 🔥 NEW: Toggle selected columns
+  const handleColumnToggle = (e) => {
+    const col = e.target.value;
+    setSelectedColumns(prev =>
+      prev.includes(col)
+        ? prev.filter(c => c !== col)
+        : [...prev, col]
+    );
+  };
 
   const deleteRow = async (id) => {
     if (!window.confirm("Delete?")) return;
@@ -13,13 +27,26 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
     onRefresh();
   };
 
+  // 🔥 UPDATED: Excel export (client) with filters
   const exportExcelClient = () => {
-    const ws = XLSX.utils.json_to_sheet(rows);
+    if (selectedColumns.length === 0) {
+      alert("Select at least one column to export.");
+      return;
+    }
+
+    const filtered = rows.map(r => {
+      let obj = {};
+      selectedColumns.forEach(c => obj[c] = r[c]);
+      return obj;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(filtered);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Employees");
+
     const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     const blob = new Blob([buf], { type: "application/octet-stream" });
-    saveAs(blob, "employees.xlsx");
+    saveAs(blob, "employees_filtered.xlsx");
   };
 
   const exportExcelServer = async () => {
@@ -29,20 +56,50 @@ export default function EmployeeTable({ rows, onRefresh, onEdit }) {
     saveAs(res.data, "employees.xlsx");
   };
 
-  const exportPDFClient = async () => {
+  // 🔥 UPDATED: PDF export (client) with filters
+  const exportPDFClient = () => {
+    if (selectedColumns.length === 0) {
+      alert("Select at least one column to export.");
+      return;
+    }
+
     const doc = new jsPDF();
-    const el = document.getElementById("emp-table");
-    const canvas = await html2canvas(el);
-    const img = canvas.toDataURL("image/png");
-    const imgProps = doc.getImageProperties(img);
-    const pdfWidth = doc.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    doc.addImage(img, "PNG", 0, 0, pdfWidth, pdfHeight);
-    doc.save("employees.pdf");
+
+    const tableData = rows.map(r => {
+      let obj = {};
+      selectedColumns.forEach(c => obj[c] = r[c]);
+      return obj;
+    });
+
+    const columns = selectedColumns.map(c => ({
+      header: c.toUpperCase(),
+      dataKey: c
+    }));
+
+    doc.autoTable({
+      columns,
+      body: tableData
+    });
+
+    doc.save("employees_filtered.pdf");
   };
 
   return (
     <div>
+
+      {/* 🔥 NEW: Column Filters */}
+      <div className="mb-2">
+        <strong>Select columns:</strong>
+        <div className="mt-1">
+          {["id", "name", "email", "position", "department", "salary"].map(col => (
+            <label key={col} className="me-3">
+              <input type="checkbox" value={col} onChange={handleColumnToggle} />
+              {" "}{col.toUpperCase()}
+            </label>
+          ))}
+        </div>
+      </div>
+
       <div className="mb-2">
         <button className="btn btn-outline-primary me-2" onClick={exportExcelClient}>
           Export Excel (client)
