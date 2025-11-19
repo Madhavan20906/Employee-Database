@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def create_app():
-    app = Flask(__name__, static_folder="frontend/dist", static_url_path="/")
+    app = Flask(__name__, static_folder="frontend/build", static_url_path="/")
     app.config.from_object(Config)
 
     # 🔥 FIX FOR RENDER DB DISCONNECTION
@@ -45,9 +45,10 @@ def create_app():
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def serve_react(path):
-        if path != "" and os.path.exists(os.path.join("frontend/dist", path)):
-            return send_from_directory("frontend/dist", path)
-        return send_from_directory("frontend/dist", "index.html")
+        if path != "" and os.path.exists(os.path.join("frontend/build", path)):
+            return send_from_directory("frontend/build", path)
+        return send_from_directory("frontend/build", "index.html")
+
 
     return app
 
